@@ -1,5 +1,4 @@
 import * as ActionTypes from './ActionTypes';
-import { DISHES } from '../shared/dishes';
 import { baseUrl } from '../shared/baseUrl';
 
 export const addComment = (comment) => ({
@@ -41,6 +40,58 @@ export const postComment = (dishId, rating, author, comment) => (dispatch) => {
     .then(response => dispatch(addComment(response)))
     .catch(error =>  { console.log('post comments', error.message); alert('Your comment could not be posted\nError: '+error.message); });
 };
+
+
+
+export const addFeedback = (feedback) => ({
+  type: ActionTypes.ADD_FEEDBACK,
+  payload: feedback
+});
+
+
+export const postFeedback = (dishId, firstname, lastname, telnum,email,message) => (dispatch) => {
+
+  const newFeedback = {
+      dishId: dishId,
+      firstname:firstname,
+      lastname:lastname,
+      telnum:telnum,
+      email:email,
+      message:message
+  };
+  newFeedback.date = new Date().toISOString();
+  
+  return fetch(baseUrl + 'feedback', {
+      method: "POST",
+      body: JSON.stringify(newFeedback),
+      headers: {
+        "Content-Type": "application/json"
+      },
+      credentials: "same-origin"
+  })
+  .then(response => {
+      if (response.ok) {
+        return response;
+      } else {
+        var error = new Error('Error ' + response.status + ': ' + response.statusText);
+        error.response = response;
+        throw error;
+      }
+    },
+    error => {
+          throw error;
+    })
+  .then(response => response.json())
+  .then(response => dispatch(addFeedback(response)))
+  .catch(error =>  { console.log('post feedback', error.message); alert('Your comment could not be posted\nError: '+error.message); });
+};
+
+
+
+
+
+
+
  
 
 export const fetchDishes = () => (dispatch) => {
@@ -147,4 +198,44 @@ export const promosFailed = (errmess) => ({
 export const addPromos = (promos) => ({
     type: ActionTypes.ADD_PROMOS,
     payload: promos
+});
+
+
+
+export const fetchLead = () => (dispatch) => {
+    
+  dispatch(leadLoading());
+
+  return fetch(baseUrl + 'leaders')
+  .then(response => {
+      if (response.ok) {
+        return response;
+      } else {
+        var error = new Error('Error ' + response.status + ': ' + response.statusText);
+        error.response = response;
+        throw error;
+      }
+    },
+    error => {
+          var errmess = new Error(error.message);
+          throw errmess;
+    })
+  .then(response => response.json())
+  .then(lead => dispatch(addLead(lead)))
+  .catch(error => dispatch(leadFailed(error.message)));
+}
+
+
+export const leadLoading = () => ({
+  type: ActionTypes.LEAD_LOADING
+});
+
+export const leadFailed = (errmess) => ({
+  type: ActionTypes.LEAD_FAILED,
+  payload: errmess
+});
+
+export const addLead = (lead) => ({
+  type: ActionTypes.ADD_LEAD,
+  payload: lead
 });
